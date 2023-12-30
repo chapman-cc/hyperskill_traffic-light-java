@@ -45,11 +45,11 @@ public class TrafficLight implements Runnable {
     }
 
     public void addRoad(Road road) throws RoadQueue.QueueFullException {
-        queue.enqueue(road);
+        queue.push(road);
     }
 
     public Road popRoad() throws RoadQueue.QueueEmptyException {
-        return queue.dequeue();
+        return queue.pop();
     }
 
     @Override
