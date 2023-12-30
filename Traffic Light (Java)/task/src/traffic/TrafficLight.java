@@ -1,6 +1,7 @@
 package traffic;
 
 import java.util.Iterator;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
 public class TrafficLight implements Runnable {
@@ -88,7 +89,7 @@ public class TrafficLight implements Runnable {
     public void run() {
         while (isRunning) {
             try {
-                Thread.sleep(1000L);
+                TimeUnit.SECONDS.sleep(1);
                 milliseconds += 1000;
                 updateRoadsTime();
                 if (visible) {
