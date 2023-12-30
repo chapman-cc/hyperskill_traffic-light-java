@@ -1,5 +1,6 @@
 package traffic;
 
+import java.util.Iterator;
 import java.util.function.Consumer;
 
 public class TrafficLight implements Runnable {
@@ -52,17 +53,50 @@ public class TrafficLight implements Runnable {
         return queue.pop();
     }
 
+    public void updateRoadsTime() {
+        if (queue.isEmpty()) {
+            return;
+        }
+        Iterator<Road> it = queue.getRoadsIterator();
+        int count = queue.getRoadsCount();
+        int i = 0;
+        while (it.hasNext()) {
+            i++;
+            Road road = it.next();
+
+            if (road == null) {
+                continue;
+            }
+            int time = road.getTime();
+            if (time > 1) {
+                road.setTime(time - 1);
+                continue;
+            }
+
+            if (queue.getRoadsCount() == 1 || road.isClosed()) {
+                // Open road
+                road.setState((Road.RoadState.OPEN));
+                road.setTime(interval);
+            } else {
+                // Close road
+                road.setState((Road.RoadState.CLOSED));
+                road.setTime((count - 1) * interval);
+                count--;
+            }
+        }
+    }
+
     @Override
     public void run() {
         while (isRunning) {
             try {
                 Thread.sleep(1000L);
                 milliseconds += 1000;
-                queue.updateRoadsTime();
+                updateRoadsTime();
                 if (visible) {
                     display.accept(milliseconds / 1000);
                 }
-            } catch (InterruptedException e) {  
+            } catch (InterruptedException e) {
                 throw new RuntimeException(e);
             }
         }

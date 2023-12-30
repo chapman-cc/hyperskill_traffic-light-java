@@ -1,12 +1,14 @@
 package traffic;
 
+import java.util.Arrays;
+import java.util.Iterator;
+
 public class RoadQueue {
 
     private final Road[] roads;
     private final IndexPointer front;
     private final IndexPointer rear;
     private final int interval;
-    private int openRoadIdx;
     private int roadsCount;
 
     public RoadQueue(int size, int interval) {
@@ -14,7 +16,6 @@ public class RoadQueue {
         this.front = new IndexPointer(size);
         this.rear = new IndexPointer(size);
         this.interval = interval;
-        this.openRoadIdx = 0;
         this.roadsCount = 0;
     }
 
@@ -22,26 +23,12 @@ public class RoadQueue {
         return roads;
     }
 
-    @Deprecated
-    public void resetRoadsState() {
-        roadsCount = 0;
-        boolean initialSetting = false;
-        for (int i = 0; i < roads.length; i++) {
-            Road road = roads[i];
-            if (road == null) continue;
+    public int getRoadsCount() {
+        return roadsCount;
+    }
 
-            roadsCount++;
-
-            if (!initialSetting) {
-                initialSetting = true;
-                road.setState(Road.RoadState.OPEN);
-                road.setTime(interval);
-                openRoadIdx = i;
-            } else {
-                road.setState(Road.RoadState.CLOSED);
-                road.setTime(interval * i);
-            }
-        }
+    public Iterator<Road> getRoadsIterator() {
+        return Arrays.stream(roads).iterator();
     }
 
     public boolean isFull() {
@@ -56,23 +43,27 @@ public class RoadQueue {
         if (isFull()) {
             throw new QueueFullException();
         }
+
+        if (roadsCount != 0) {
+            rear.next();
+        }
+        roads[rear.get()] = road;
         roadsCount++;
 
         if (roadsCount == 1) {
             road.setState(Road.RoadState.OPEN);
             road.setTime(interval);
-            openRoadIdx = rear.get();
+            return;
+        }
+        // TODO: get previous road time and determine the next one
+        int prevIdx = rear.get() != 0 ? rear.get() - 1 : front.get();
+        Road prevRoad = roads[prevIdx];
+        if (prevRoad.isOpen()) {
+            road.setTime(prevRoad.getTime());
         } else {
-            road.setTime((roadsCount - 1) * interval);
+            road.setTime(prevRoad.getTime()+interval);
         }
 
-
-        if (roads[rear.get()] != null) {
-            rear.next();
-            roads[rear.get()] = road;
-        } else {
-            roads[rear.get()] = road;
-        }
     }
 
     public Road pop() throws QueueEmptyException {
@@ -83,48 +74,8 @@ public class RoadQueue {
         roads[front.get()] = null;
         roadsCount--;
 
-        if (openRoadIdx == front.get()) {
-            openRoadIdx = 0;
-        }
-
         front.next();
         return road;
-    }
-
-    public void updateRoadsTime() {
-        if (isEmpty()) {
-            return;
-        }
-
-        IndexPointer pointer = new IndexPointer(roads.length, openRoadIdx);
-        int count = roadsCount;
-
-        for (int i = 0; i < roads.length; i++) {
-            Road road = roads[pointer.get()];
-            if (road == null) {
-                pointer.next();
-                continue;
-            }
-
-            int time = road.getTime();
-            if (time > 1) {
-                road.setTime(time - 1);
-                pointer.next();
-                continue;
-            }
-
-            // Open road
-            if (roadsCount == 1 || road.isClosed()) {
-                openRoadIdx = pointer.get();
-                road.setState((Road.RoadState.OPEN));
-                road.setTime(interval);
-            } else {
-                road.setState((Road.RoadState.CLOSED));
-                road.setTime((count - 1) * interval);
-                count--;
-            }
-            pointer.next();
-        }
     }
 
     public static class QueueFullException extends Exception {
