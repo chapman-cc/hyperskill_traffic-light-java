@@ -55,7 +55,7 @@ public class RoadQueue {
             road.setTime(interval);
             return;
         }
-        // TODO: get previous road time and determine the next one
+
         int prevIdx = rear.get() != 0 ? rear.get() - 1 : front.get();
         Road prevRoad = roads[prevIdx];
         if (prevRoad.isOpen()) {

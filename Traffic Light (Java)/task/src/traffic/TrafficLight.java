@@ -59,9 +59,7 @@ public class TrafficLight implements Runnable {
         }
         Iterator<Road> it = queue.getRoadsIterator();
         int count = queue.getRoadsCount();
-        int i = 0;
         while (it.hasNext()) {
-            i++;
             Road road = it.next();
 
             if (road == null) {
