@@ -52,7 +52,7 @@ public class RoadQueue {
 
         if (roadsCount == 1) {
             road.setState(Road.RoadState.OPEN);
-            road.setTime(interval);
+            road.setTime(interval + 1);
             return;
         }
 
